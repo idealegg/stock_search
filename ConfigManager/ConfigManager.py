@@ -39,6 +39,9 @@ class ConfigManager:
     def get_stock_multi(self):
         return self.config_map['STOCK_LIST']['stock_multi']
 
+    def get_query_all(self):
+        return self.config_map['STOCK_LIST']['query_all']
+
     def printf(self):
         pprint.pprint(self.config_map['GLOBAL'])
         pprint.pprint(self.config_map['STOCK_LIST'])

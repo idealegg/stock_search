@@ -3,6 +3,9 @@ from StockQuery.StockQuery import StockQuery
 import chardet
 import pprint
 import json
+import os
+import sys
+import time
 
 
 def trim_space(str):
@@ -21,12 +24,25 @@ def trim_space(str):
     return str[start:stop]
 
 
+def get_time(time_format='%Y-%m-%d_%H_%M_%S', seconds=None):
+    return time.strftime(time_format, time.localtime(seconds))
+
+
+def my_make_dir(result_dir):
+    if not os.path.isdir(result_dir):
+        if os.path.exists(result_dir):
+            os.remove(result_dir)
+        os.mkdir(result_dir)
+
+
 class QueryList:
     def __init__(self):
         self.stock_list = ConfigManager.instance().get_stock_list()
         self.stock_type = ConfigManager.instance().get_stock_type()
+        self.query_all = ConfigManager.instance().get_query_all()
         self.query = StockQuery()
         self.stock_info = {}
+        self.result_dir = os.path.join(os.path.dirname(sys.path[0]), 'Result')
 
     def do_query(self):
         if self.stock_type == 'id':
@@ -48,14 +64,16 @@ class QueryList:
         pprint.pprint(self.stock_info)
 
     def output_excel(self, header=None):
-        output = open("result.csv", 'w')
+        my_make_dir(self.result_dir)
+        result_file = os.path.join(self.result_dir, ".".join(["_".join(["result", get_time()]), "csv"]))
+        output = open(result_file, 'w')
         content = ""
         first = True
         for stock_name in self.stock_info:
             # tmp_stock_info = json.loads(self.stock_info[stock_name])
             tmp_stock_info = self.stock_info[stock_name]
             if first:
-                if not header:
+                if not header or self.query_all == '1':
                     header = tmp_stock_info.keys()
                 content = ",".join(header)
                 first = False
