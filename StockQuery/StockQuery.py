@@ -25,8 +25,10 @@ class StockQuery:
         if self.content:
             print chardet.detect(self.content)
             print self.content+"\n"
-            self.stock_info = json.loads(self.content)['retData']['stockinfo']
-            return True
+            return_info = json.loads(self.content)
+            if return_info["errNum"] == 0:
+                self.stock_info = return_info['retData']['stockinfo']
+                return True
         return False
 
     def do_query_by_name(self, name):
