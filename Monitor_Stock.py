@@ -18,11 +18,11 @@ class MointorStock:
     self.config_parser = ConfigParser.ConfigParser()
     self.conf_path = conf_path
     self.work_time = (('0930', '1130'), ('1300', '1457')
-                      #, ('0000', '2359')
+                      , ('0000', '2359')
                       )
     self.conf = {'interval': 10,
                  'retry_interval': 60,
-                 'report_interval': 1800,
+                 'report_interval': 60,
                  'line_length': 240,
                  self.TRIGGER_BUY_1_MONITOR: {
                                     'min_trade_vol': 5000.0,
@@ -112,7 +112,7 @@ class MointorStock:
       self.conf[self.JUST_PRINT]['stock'] = re.split(re.compile('[,\s]+'), self.conf[self.JUST_PRINT]['stock'])
 
   def warning(self):
-    print self.warning_msg.decode('gdb')
+    print self.warning_msg.decode('gbk')
     self.warning_list.append("%s: %s: %s" % (time.ctime(), self.cur_trigger, self.warning_msg))
     t1 = threading.Thread(target=win32api.MessageBox, args=(0, self.warning_msg,
                 "%s %s" % (self.cur_trigger, time.ctime()),
@@ -132,7 +132,7 @@ class MointorStock:
         time.sleep(float(self.conf['retry_interval']))
         continue
       break
-    print req
+    #print req
     #print req.encoding
     #print req.content
     if self.cur_msg.has_key(stock):
@@ -146,7 +146,7 @@ class MointorStock:
     self.print_stock_info(stock)
     #return self.cur_msg[stock][1]
 
-  def print_stock_info(self, stock):
+  def print_stock_info2(self, stock):
     s = ''
     if self.cur_msg.has_key(stock):
       for field in self.print_out_list:
@@ -155,6 +155,15 @@ class MointorStock:
           print s
           s = ''
       print s
+
+  def print_stock_info(self, stock):
+    l1 = ''
+    l2 = ''
+    if self.cur_msg.has_key(stock):
+      for field in self.print_out_list:
+        l1 = " ".join([l1, "%-12s" % self.Field_content[field].strip()])
+        l2 = " ".join([l2, "%-10s" % self.cur_msg[stock][field].strip()])
+      print "%s\n%s" % (l1, l2)
 
   def monitor_buy_1(self, stock):
     self.get_new_msg(stock)
