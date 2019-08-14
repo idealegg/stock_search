@@ -45,7 +45,10 @@ class MointorStock:
     self.warning_list = []
     self.warning_msg = ''
     self.cur_trigger = None
-    self.print_out_list = (1, 3, 4, 5, 6, 9, 10, 32, 33, 34, 38, 43)
+    self.print_out_list = [(1,  2, 3,  4, 5, 32, 33, 34, 38, 43, 6, 9, 10),
+                           (13, 7, 13, 8, 8, 8,  8,  8, 10, 8, 19, 8, 19)]
+    self.printed_header = False
+    self.first = True
     self.Field_content = {0: '未知',
                  1: '名字',
                  2: '代码',
@@ -149,7 +152,7 @@ class MointorStock:
   def print_stock_info2(self, stock):
     s = ''
     if self.cur_msg.has_key(stock):
-      for field in self.print_out_list:
+      for field in self.print_out_list[0]:
         s = ', '.join([s, "%s: %s" % (self.Field_content[field], self.cur_msg[stock][field])])
         if len(s) > int(self.conf['line_length']):
           print s
@@ -160,10 +163,25 @@ class MointorStock:
     l1 = ''
     l2 = ''
     if self.cur_msg.has_key(stock):
-      for field in self.print_out_list:
-        l1 = " ".join([l1, "%-12s" % self.Field_content[field].strip()])
-        l2 = " ".join([l2, "%-10s" % self.cur_msg[stock][field].strip()])
-      print "%s\n%s" % (l1, l2)
+      i = 0
+      #if self.first:
+      #  self.print_out_list[1] = [0] * len(self.print_out_list[0])
+      for field in self.print_out_list[0]:
+        #if self.first:
+        #  self.print_out_list[1][i] = max(self.print_out_list[1][i],
+        #      max(len(self.Field_content[field].strip()), len(self.cur_msg[stock][field].strip())) + 1)
+        #print '[%-18s][%d]' % (self.Field_content[field].strip(), len(self.Field_content[field].strip()))
+        #print '[%-18s][%d]' % (self.cur_msg[stock][field].strip(), len(self.cur_msg[stock][field].strip()))
+        l1 = " ".join([l1, "%-*s" % (self.print_out_list[1][i] + len(self.Field_content[field].strip())/3,
+                                     self.Field_content[field].strip())])
+        l2 = " ".join([l2, "%-*s" % (self.print_out_list[1][i] if (field != 1) else
+                                       self.print_out_list[1][i] + len(self.cur_msg[stock][field].strip())/3,
+                                     self.cur_msg[stock][field].strip())])
+        i += 1
+      l1 = '' if self.printed_header else "".join(["\n%s | Trigger [%s]:\n" % (time.ctime(), "just_print"), l1, '开盘涨跌', '\n'])
+      self.printed_header = True
+      self.first = False
+      print "%s%s%-.2f" % (l1, l2, float(self.cur_msg[stock][5])/float(self.cur_msg[stock][4]) *100 - 100)
 
   def monitor_buy_1(self, stock):
     self.get_new_msg(stock)
@@ -208,12 +226,13 @@ if __name__ == "__main__":
     if ms.is_in_working_time():
       for t in ms.trigger_list:
         for stock in ms.conf[t]['stock']:
-          print "\n%s | Trigger [%s]: [%s]" % (time.ctime(), t, stock)
+          #print "\n%s | Trigger [%s]: [%s]" % (time.ctime(), t, stock)
           ms.trigger[t](stock)
     else:
       print "current is not working time!"
     time.sleep(float(ms.conf['interval']))
     count += 1
+    ms.printed_header = False
     if float(ms.conf['interval']) * count > float(ms.conf['report_interval']):
       pprint.pprint(ms.warning_list)
       count = 0
