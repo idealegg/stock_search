@@ -10,6 +10,7 @@ import re
 import chardet
 import threading
 import mysql_interface.mysql_exec
+import TestTaskbarIcon.TestTaskbarIcon
 
 
 class MointorStock:
@@ -50,6 +51,7 @@ class MointorStock:
                            (13, 7, 13, 8, 8, 8,  8,  8, 10, 8, 19, 8, 19)]
     self.printed_header = False
     self.first = True
+    self.msg_prop = TestTaskbarIcon.TestTaskbarIcon.TestTaskbarIcon()
     self.Field_content = {0: '未知',
                  1: '名字',
                  2: '代码',
@@ -124,6 +126,7 @@ class MointorStock:
                 "%s %s" % (self.cur_trigger, time.ctime()),
                 win32con.MB_OK | win32con.MB_ICONWARNING))
     t1.start()
+    self.msg_prop.showMsg(self.cur_trigger, self.warning_msg)
     #win32api.MessageBox(0, self.warning_msg,
     #                       "%s %s" %(self.cur_trigger, time.ctime()),
     #                       win32con.MB_OK | win32con.MB_ICONWARNING)

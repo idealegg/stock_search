@@ -41,12 +41,16 @@ class TestTaskbarIcon:
 
     def OnDestroy(self, hwnd, msg, wparam, lparam):
         nid = (self.hwnd, 0)
-        win32gui.Shell_NotifyIcon(win32gui.NIM_DELETE, nid)
-        win32gui.PostQuitMessage(0)  # Terminate the app.
+        #win32gui.Shell_NotifyIcon(win32gui.NIM_DELETE, nid)
+        #win32gui.PostQuitMessage(0)  # Terminate the app.
 
 
 if __name__ == '__main__':
-    t = TestTaskbarIcon()
-    t.showMsg("您有新的文件，请登录查看", "Mr a2man!")
-    time.sleep(5)
-    win32gui.DestroyWindow(t.hwnd)
+  i = 1
+  t = TestTaskbarIcon()
+  while True:
+    t.showMsg(u"您有新的文件，请登录查看", "Mr a2man %d!" %i)
+    time.sleep(1)
+    #win32gui.DestroyWindow(t.hwnd)
+    time.sleep(1)
+    i += 1
