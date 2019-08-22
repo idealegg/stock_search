@@ -9,6 +9,7 @@ import win32con
 import re
 import chardet
 import threading
+import mysql_interface.mysql_exec
 
 
 class MointorStock:
@@ -109,10 +110,12 @@ class MointorStock:
     #self.stock_list = re.split(re.compile('[,\s]+'), self.conf['stock'])
     if self.config_parser.has_section(self.TRIGGER_BUY_1_MONITOR):
       self.conf[self.TRIGGER_BUY_1_MONITOR] = dict(self.config_parser.items(self.TRIGGER_BUY_1_MONITOR))
-      self.conf[self.TRIGGER_BUY_1_MONITOR]['stock'] = re.split(re.compile('[,\s]+'), self.conf[self.TRIGGER_BUY_1_MONITOR]['stock'])
+      self.conf[self.TRIGGER_BUY_1_MONITOR]['stock'] = mysql_interface.mysql_exec.parse_stock(
+                                        re.split(re.compile('[,\s]+'), self.conf[self.TRIGGER_BUY_1_MONITOR]['stock']))
     if self.config_parser.has_section(self.JUST_PRINT):
       self.conf[self.JUST_PRINT] = dict(self.config_parser.items(self.JUST_PRINT))
-      self.conf[self.JUST_PRINT]['stock'] = re.split(re.compile('[,\s]+'), self.conf[self.JUST_PRINT]['stock'])
+      self.conf[self.JUST_PRINT]['stock'] = mysql_interface.mysql_exec.parse_stock(
+                                        re.split(re.compile('[,\s]+'), self.conf[self.JUST_PRINT]['stock']))
 
   def warning(self):
     print self.warning_msg.decode('gbk')
@@ -143,6 +146,9 @@ class MointorStock:
     self.cur_msg[stock] = []
     self.cur_msg[stock] = req.content.split('~')
     encoding = req.encoding
+    #print stock
+    #print self.cur_msg[stock]
+    #print self.cur_msg[stock][1]
     self.cur_msg[stock][1] = self.cur_msg[stock][1].decode(encoding).encode('utf8')
     req.close()
     #pprint.pprint(self.cur_msg[stock])
