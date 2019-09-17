@@ -27,10 +27,15 @@ def get_stock_list(stocks_str):
     if stock.isdigit():
       conditions.append("cast(b.code as char) like '%%%s%%'" % stock)
     else:
-      conditions.append("b.name like '%%%s%%'" % stock)
+      if stock.startswith('^'):
+        conditions.append("b.name like '%s%%'" % stock[1:])
+      elif stock.endswith('$'):
+        conditions.append("b.name like '%%%s_'" % stock[:-1])
+      else:
+        conditions.append("b.name like '%%%s%%'" % stock)
   condition_clause = " or ".join(conditions)
   command="select b.code from gaia.stock_list as b where %s\n" % condition_clause
-  print "CMD:\n%s\n" % command
+  print "CMD:\n%s" % command
   f_sql = open(to_to_sql_path, "w")
   f_sql.write(command)
   f_sql.close()

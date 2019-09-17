@@ -33,7 +33,8 @@ class MointorStock:
                                     'stock' : []
                   },
                  self.JUST_PRINT : {
-                                    'stock' : []
+                                    'stock' : [],
+                                    'hold'  : [],
 
                  }
                  }
@@ -118,6 +119,18 @@ class MointorStock:
       self.conf[self.JUST_PRINT] = dict(self.config_parser.items(self.JUST_PRINT))
       self.conf[self.JUST_PRINT]['stock'] = mysql_interface.mysql_exec.parse_stock(
                                         re.split(re.compile('[,\s]+'), self.conf[self.JUST_PRINT]['stock']))
+      if self.conf[self.JUST_PRINT].has_key('hold'):
+        tmp = re.split(re.compile('[,\s]+'), self.conf[self.JUST_PRINT]['hold'])
+        self.conf[self.JUST_PRINT]['hold'] = {}
+        for t in tmp:
+          t1 = t.split(":")
+          if len(t1) > 3:
+            s = mysql_interface.mysql_exec.parse_stock([t1[0]])[0]
+            self.conf[self.JUST_PRINT]['hold'][s] = {}
+            self.conf[self.JUST_PRINT]['hold'][s]['cost'] = float(t1[1])
+            self.conf[self.JUST_PRINT]['hold'][s]['vol'] = int(t1[2])
+            self.conf[self.JUST_PRINT]['hold'][s]['today'] = t1[3] == 'Y'
+            self.conf[self.JUST_PRINT]['stock'].extend([s])
 
   def warning(self):
     print self.warning_msg.decode('gbk')
@@ -215,6 +228,19 @@ class MointorStock:
           self.cur_msg[stock][1].decode('utf8').encode('gbk'), last, cur)
         self.warning()
 
+  def print_cost(self):
+    if self.conf[self.JUST_PRINT].has_key('hold'):
+      all_cost = 0.0
+      day_cost = 0.0
+      for stock in self.conf[self.JUST_PRINT]['hold'].keys():
+        all_cost += (float(self.cur_msg[stock][9]) - self.conf[self.JUST_PRINT]['hold'][stock]['cost']
+                     ) * self.conf[self.JUST_PRINT]['hold'][stock]['vol']
+        day_cost += (float(self.cur_msg[stock][9]) - (float(self.cur_msg[stock][4])
+             if not self.conf[self.JUST_PRINT]['hold'][stock]['today'] else self.conf[self.JUST_PRINT]['hold'][stock]['cost']
+                    )) * self.conf[self.JUST_PRINT]['hold'][stock]['vol']
+      print "All cost: %.02f, Day cost: %.02f\n" % (all_cost, day_cost)
+
+
   def is_in_working_time(self, t=None):
     t1 = time.localtime(t)
     d = time.strftime("%y%m%d", t1)
@@ -239,6 +265,7 @@ if __name__ == "__main__":
           ms.trigger[t](stock)
     else:
       print "current is not working time!"
+    ms.print_cost()
     time.sleep(float(ms.conf['interval']))
     count += 1
     ms.printed_header = False
